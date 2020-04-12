@@ -36,7 +36,9 @@ class LRULinkedList(object):
 
     def remove_node(self, node):
         if self.head is None:
-            raise CacheEmptyError()
+            raise Exception((
+                f"Head node must not be NoneType to perform this operation."
+                f" This is unexpected behaviour."))
 
         if node == self.head and node == self.tail:
             # only one item in cache.
@@ -87,6 +89,8 @@ class LRUCache(CacheInterface, LRULinkedList):
         self.update_store(node.key, node)
 
     def get(self, key):
+        if self.size == 0:
+            raise CacheEmptyError()
         if key not in self.store:
             raise CacheKeyError(key)
 
@@ -96,6 +100,8 @@ class LRUCache(CacheInterface, LRULinkedList):
         return node.value
 
     def delete(self, key):
+        if self.size == 0:
+            raise CacheEmptyError()
         if key not in self.store:
             raise CacheKeyError(key)
 

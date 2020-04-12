@@ -10,3 +10,7 @@ class CacheAdapter(object):
 
     def delete(self, key):
         self.cache.delete(key)
+
+    @property
+    def size(self):
+        return self.cache.size
