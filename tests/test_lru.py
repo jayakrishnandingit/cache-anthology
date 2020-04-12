@@ -1,4 +1,5 @@
 import unittest
+import gc
 
 from adapter import CacheAdapter
 from lru import LRUCache
@@ -12,6 +13,7 @@ class CacheSetTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.ip_hits = None
+        gc.collect()
 
     def test_empty_cache(self):
         self.assertIsNone(self.ip_hits.cache.head)
@@ -67,6 +69,7 @@ class CacheGetTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.ip_hits = None
+        gc.collect()
 
     def test_empty_cache(self):
         self.assertIsNone(self.ip_hits.cache.head)
@@ -160,6 +163,7 @@ class CacheDeleteTestCase(unittest.TestCase):
 
     def tearDown(self):
         self.ip_hits = None
+        gc.collect()
 
     def test_empty_cache(self):
         self.assertIsNone(self.ip_hits.cache.head)
