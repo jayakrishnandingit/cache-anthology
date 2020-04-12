@@ -18,13 +18,3 @@ class CacheInterface(metaclass=ABCMeta):
     @abstractmethod
     def size(self):
         pass
-
-
-class LinkedListInterface(metaclass=ABCMeta):
-    @abstractmethod
-    def insert_at_front(self, node):
-        pass
-
-    @abstractmethod
-    def delete_node(self, node):
-        pass

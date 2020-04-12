@@ -13,69 +13,29 @@ class LRUNode(object):
         return '(%s, %s)' % (self.key, self.value)
 
 
-class LRUCache(CacheInterface):
-    MAX_SIZE = 10
-
+class LRULinkedList(object):
     def __init__(self):
-        self.store = {}
-        self.head = None  # most recently used Node.
-        self.tail = None  # least recently used Node.
-        self.current_size = 0
-
-    def __str__(self):
-        return '%s' % self.store
-
-    def set_max_size(self, new_size):
-        self.MAX_SIZE = new_size
+        self.head = None
+        self.tail = None
 
     def get_node_class(self):
         return LRUNode
 
-    @property
-    def size(self):
-        return self.current_size
+    def create_node(self, key, value):
+        Node = self.get_node_class()
+        return Node(key, value)
 
-    def set(self, key, value):
-        if key not in self.store:
-            if self.size == self.MAX_SIZE:
-                # cache full. delete least recently used.
-                self.delete(self.tail.key)
-            node = self._create_new_node(key, value)
+    def insert_at_front(self, node):
+        if self.head is None:
+            # cache is empty.
+            self.head = self.tail = node
         else:
-            node = self.store[key]
-            self.delete(node.key)
-        self._move_to_front(node)
-        self._update_store(node.key, node)
-        self._incr_size()
+            node.next = self.head
+            self.head.prev = node
+            self.head = node
 
-    def get(self, key):
-        if key not in self.store:
-            raise CacheKeyError(key)
-
-        node = self.store[key]
-        # TODO: Wrong. Value goes missing.
-        self.delete(node.key)
-        self._move_to_front(node)
-        return node.value
-
-    def delete(self, key):
-        if key not in self.store:
-            raise CacheKeyError(key)
-
-        node = self.store[key]        
-        self._remove_node(node)
-        self.store.pop(key)
-
-    def _incr_size(self):
-        assert self.size < self.MAX_SIZE
-        self.current_size += 1
-
-    def _decr_size(self):
-        assert self.size > 0
-        self.current_size -= 1
-
-    def _remove_node(self, node):
-        if self.size == 0:
+    def remove_node(self, node):
+        if self.head is None:
             raise CacheEmptyError()
 
         if node == self.head and node == self.tail:
@@ -93,20 +53,65 @@ class LRUCache(CacheInterface):
             # remove a node in the middle.
             node.prev.next = node.next
             node.next.prev = node.prev
-        self._decr_size()
 
-    def _create_new_node(self, key, value):
-        Node = self.get_node_class()
-        return Node(key, value)
 
-    def _move_to_front(self, node):
-        if self.size == 0:
-            # cache is empty.
-            self.head = self.tail = node
+class LRUCache(CacheInterface, LRULinkedList):
+    MAX_SIZE = 10
+
+    def __init__(self):
+        super().__init__()
+        self.store = {}
+        self.current_size = 0
+
+    def __str__(self):
+        return '%s' % self.store
+
+    def set_max_size(self, new_size):
+        self.MAX_SIZE = new_size
+
+    @property
+    def size(self):
+        return self.current_size
+
+    def set(self, key, value):
+        if key not in self.store:
+            if self.size == self.MAX_SIZE:
+                # cache full. delete least recently used.
+                self.delete(self.tail.key)
+            node = self.create_node(key, value)
         else:
-            node.next = self.head
-            self.head.prev = node
-            self.head = node
+            node = self.store[key]
+            self.remove_node(node)
 
-    def _update_store(self, key, node):
+        self.insert_at_front(node)
+        self.update_store(node.key, node)
+        self.incr_size()
+
+    def get(self, key):
+        if key not in self.store:
+            raise CacheKeyError(key)
+
+        node = self.store[key]
+        self.remove_node(node)
+        self.insert_at_front(node)
+        return node.value
+
+    def delete(self, key):
+        if key not in self.store:
+            raise CacheKeyError(key)
+
+        node = self.store[key]        
+        self.remove_node(node)
+        self.store.pop(key)
+        self.decr_size()
+
+    def incr_size(self):
+        assert self.size < self.MAX_SIZE
+        self.current_size += 1
+
+    def decr_size(self):
+        assert self.size > 0
+        self.current_size -= 1
+
+    def update_store(self, key, node):
         self.store[key] = node
