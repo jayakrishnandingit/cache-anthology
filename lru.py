@@ -36,7 +36,9 @@ class LRULinkedList(object):
 
     def remove_node(self, node):
         if self.head is None:
-            raise CacheEmptyError()
+            raise Exception((
+                f"Head node must not be NoneType to perform this operation."
+                f" This is unexpected behaviour."))
 
         if node == self.head and node == self.tail:
             # only one item in cache.
@@ -61,7 +63,6 @@ class LRUCache(CacheInterface, LRULinkedList):
     def __init__(self):
         super().__init__()
         self.store = {}
-        self.current_size = 0
 
     def __str__(self):
         return '%s' % self.store
@@ -71,7 +72,7 @@ class LRUCache(CacheInterface, LRULinkedList):
 
     @property
     def size(self):
-        return self.current_size
+        return len(self.store.keys())
 
     def set(self, key, value):
         if key not in self.store:
@@ -81,13 +82,15 @@ class LRUCache(CacheInterface, LRULinkedList):
             node = self.create_node(key, value)
         else:
             node = self.store[key]
+            node.value = value
             self.remove_node(node)
 
         self.insert_at_front(node)
         self.update_store(node.key, node)
-        self.incr_size()
 
     def get(self, key):
+        if self.size == 0:
+            raise CacheEmptyError()
         if key not in self.store:
             raise CacheKeyError(key)
 
@@ -97,21 +100,14 @@ class LRUCache(CacheInterface, LRULinkedList):
         return node.value
 
     def delete(self, key):
+        if self.size == 0:
+            raise CacheEmptyError()
         if key not in self.store:
             raise CacheKeyError(key)
 
         node = self.store[key]        
         self.remove_node(node)
         self.store.pop(key)
-        self.decr_size()
-
-    def incr_size(self):
-        assert self.size < self.MAX_SIZE
-        self.current_size += 1
-
-    def decr_size(self):
-        assert self.size > 0
-        self.current_size -= 1
 
     def update_store(self, key, node):
         self.store[key] = node

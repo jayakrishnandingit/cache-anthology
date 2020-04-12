@@ -1,6 +1,3 @@
-import unittest
-
-
 class CacheAdapter(object):
     def __init__(self, cache):
         self.cache = cache
@@ -14,6 +11,6 @@ class CacheAdapter(object):
     def delete(self, key):
         self.cache.delete(key)
 
-
-if __name__ == '__main__':
-    unittest.main()
+    @property
+    def size(self):
+        return self.cache.size
