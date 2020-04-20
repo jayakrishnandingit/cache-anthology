@@ -25,7 +25,7 @@ class LRULinkedList(object):
         Node = self.get_node_class()
         return Node(key, value)
 
-    def insert_at_front(self, node):
+    def push(self, node):
         if self.head is None:
             # cache is empty.
             self.head = self.tail = node
@@ -34,7 +34,7 @@ class LRULinkedList(object):
             self.head.prev = node
             self.head = node
 
-    def remove_node(self, node):
+    def remove(self, node):
         if self.head is None:
             raise Exception((
                 f"Head node must not be NoneType to perform this operation."
@@ -57,12 +57,13 @@ class LRULinkedList(object):
             node.next.prev = node.prev
 
 
-class LRUCache(CacheInterface, LRULinkedList):
+class LRUCache(CacheInterface):
     MAX_SIZE = 10
 
-    def __init__(self):
+    def __init__(self, order_manager):
         super().__init__()
         self.store = {}
+        self.order_manager = order_manager
 
     def __str__(self):
         return '%s' % self.store
@@ -72,20 +73,20 @@ class LRUCache(CacheInterface, LRULinkedList):
 
     @property
     def size(self):
-        return len(self.store.keys())
+        return len(self.store)
 
     def set(self, key, value):
         if key not in self.store:
             if self.size == self.MAX_SIZE:
                 # cache full. delete least recently used.
-                self.delete(self.tail.key)
-            node = self.create_node(key, value)
+                self.delete(self.order_manager.tail.key)
+            node = self.order_manager.create_node(key, value)
         else:
             node = self.store[key]
             node.value = value
-            self.remove_node(node)
+            self.order_manager.remove(node)
 
-        self.insert_at_front(node)
+        self.order_manager.push(node)
         self.update_store(node.key, node)
 
     def get(self, key):
@@ -95,8 +96,8 @@ class LRUCache(CacheInterface, LRULinkedList):
             raise CacheKeyError(key)
 
         node = self.store[key]
-        self.remove_node(node)
-        self.insert_at_front(node)
+        self.order_manager.remove(node)
+        self.order_manager.push(node)
         return node.value
 
     def delete(self, key):
@@ -106,7 +107,7 @@ class LRUCache(CacheInterface, LRULinkedList):
             raise CacheKeyError(key)
 
         node = self.store[key]        
-        self.remove_node(node)
+        self.order_manager.remove(node)
         self.store.pop(key)
 
     def update_store(self, key, node):
