@@ -1,4 +1,5 @@
 from components.interfaces import CacheInterface
+from components.adapter import CacheAdapter
 from components.exceptions import CacheEmptyError, CacheKeyError
 
 
@@ -112,3 +113,10 @@ class LRUCache(CacheInterface):
 
     def update_store(self, key, node):
         self.store[key] = node
+
+
+class Cache(object):
+    def __new__(cls, impl=None):
+        if impl is None:
+            impl = LRUCache(order_manager=LRULinkedList())
+        return CacheAdapter(cache=impl)

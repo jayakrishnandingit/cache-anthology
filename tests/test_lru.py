@@ -1,14 +1,13 @@
 import unittest
 import gc
 
-from adapter import CacheAdapter
-from lru import LRUCache, LRULinkedList
+from lru import Cache as LRUCache
 from components.exceptions import CacheKeyError, CacheEmptyError
 
 
 class CacheSetTestCase(unittest.TestCase):
     def setUp(self):
-        self.ip_hits = CacheAdapter(cache=LRUCache(order_manager=LRULinkedList()))
+        self.ip_hits = LRUCache()
         self.ip_hits.cache.set_max_size(3)
 
     def tearDown(self):
@@ -64,7 +63,7 @@ class CacheSetTestCase(unittest.TestCase):
 
 class CacheGetTestCase(unittest.TestCase):
     def setUp(self):
-        self.ip_hits = CacheAdapter(cache=LRUCache(order_manager=LRULinkedList()))
+        self.ip_hits = LRUCache()
         self.ip_hits.cache.set_max_size(3)
 
     def tearDown(self):
@@ -158,7 +157,7 @@ class CacheGetTestCase(unittest.TestCase):
 
 class CacheDeleteTestCase(unittest.TestCase):
     def setUp(self):
-        self.ip_hits = CacheAdapter(cache=LRUCache(order_manager=LRULinkedList()))
+        self.ip_hits = LRUCache()
         self.ip_hits.cache.set_max_size(3)
 
     def tearDown(self):
