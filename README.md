@@ -15,3 +15,10 @@ cache.set('name', 'George Clooney')
 cache.get('name')
 cache.delete('name')
 ```
+
+### Running tests
+
+```
+cd cache_anthology
+python3 -m unittest
+```
